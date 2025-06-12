@@ -2,7 +2,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import dotenv from 'dotenv';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 
 dotenv.config();
 
@@ -12,7 +12,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3002/api/auth/google/callback',
       scope: ['profile', 'email'],
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -70,7 +70,7 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_APP_ID || '',
       clientSecret: process.env.FACEBOOK_APP_SECRET || '',
-      callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+      callbackURL: process.env.FACEBOOK_CALLBACK_URL || 'http://localhost:3002/api/auth/facebook/callback',
       profileFields: ['id', 'displayName', 'photos', 'email'],
     },
     async (accessToken, refreshToken, profile, done) => {

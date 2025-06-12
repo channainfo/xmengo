@@ -121,11 +121,12 @@ cd fmengo
 ```bash
 # Install client dependencies
 cd client
-npm install
+
+npm install --force --legacy-peer-deps
 
 # Install server dependencies
 cd ../server
-npm install
+npm install --force --legacy-peer-deps
 ```
 
 3. Set up environment variables

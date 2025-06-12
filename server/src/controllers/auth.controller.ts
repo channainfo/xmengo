@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email';
 import passport from 'passport';
 import '../config/passport';
@@ -47,7 +47,7 @@ export const register = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as SignOptions
     );
 
     // Return user data without password
@@ -80,8 +80,8 @@ export const login = async (req: Request, res: Response) => {
 
     // Check if user has password (might be social login only)
     if (!user.password) {
-      return res.status(400).json({ 
-        message: 'This account uses social login. Please sign in with the appropriate provider.' 
+      return res.status(400).json({
+        message: 'This account uses social login. Please sign in with the appropriate provider.'
       });
     }
 
@@ -94,8 +94,8 @@ export const login = async (req: Request, res: Response) => {
 
     // Check if email is verified
     if (!user.verified) {
-      return res.status(400).json({ 
-        message: 'Please verify your email before logging in.' 
+      return res.status(400).json({
+        message: 'Please verify your email before logging in.'
       });
     }
 
@@ -103,7 +103,7 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as SignOptions
     );
 
     // Return user data without password
@@ -235,7 +235,7 @@ export const googleAuth = passport.authenticate('google', {
 
 // Google callback
 export const googleCallback = (req: Request, res: Response) => {
-  passport.authenticate('google', { session: false }, (err: any, user: any, info: any) => {
+  passport.authenticate('google', { session: false }, (err: any, user: any, _info: any) => {
     if (err || !user) {
       return res.redirect(`${process.env.CLIENT_URL}/login?error=Google authentication failed`);
     }
@@ -244,7 +244,7 @@ export const googleCallback = (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as SignOptions
     );
 
     // Redirect to client with token
@@ -259,7 +259,7 @@ export const facebookAuth = passport.authenticate('facebook', {
 
 // Facebook callback
 export const facebookCallback = (req: Request, res: Response) => {
-  passport.authenticate('facebook', { session: false }, (err: any, user: any, info: any) => {
+  passport.authenticate('facebook', { session: false }, (err: any, user: any, _info: any) => {
     if (err || !user) {
       return res.redirect(`${process.env.CLIENT_URL}/login?error=Facebook authentication failed`);
     }
@@ -268,7 +268,7 @@ export const facebookCallback = (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as SignOptions
     );
 
     // Redirect to client with token
@@ -288,11 +288,11 @@ export const telegramCallback = async (req: Request, res: Response) => {
   try {
     // Telegram sends auth data directly to the frontend
     // Frontend will send this data to this endpoint
-    const { id, first_name, last_name, username, photo_url, auth_date, hash } = req.body;
+    const { id, first_name, last_name, username, photo_url } = req.body;
 
     // Validate Telegram auth data (simplified)
     // In a real app, you'd need to verify the hash with the Telegram Bot API
-    
+
     // Find or create user
     let user = await prisma.user.findFirst({
       where: { telegramId: String(id) },
@@ -317,7 +317,7 @@ export const telegramCallback = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET || 'default_secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as SignOptions
     );
 
     res.status(200).json({
