@@ -21,9 +21,19 @@ import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
 import Notifications from '../pages/Notifications';
 
+// Public Pages
+import Landing from '../pages/Landing';
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      {/* Public Landing Page */}
+      <Route path="/" element={
+        <GuestRoute>
+          <Landing />
+        </GuestRoute>
+      } />
+
       {/* Auth Routes */}
       <Route element={
         <GuestRoute>
@@ -40,7 +50,7 @@ const AppRoutes: React.FC = () => {
           <MainLayout />
         </ProtectedRoute>
       }>
-        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/messages/:matchId" element={<Messages />} />
         <Route path="/matches" element={<Matches />} />

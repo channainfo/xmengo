@@ -64,7 +64,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             },
             {
               id: '3',
-              content: 'I'm good, thanks for asking! What about you?',
+              content: "I'm good, thanks for asking! What about you?",
               senderId: recipientId,
               receiverId: user?.id || '',
               createdAt: new Date(Date.now() - 3400000).toISOString(),

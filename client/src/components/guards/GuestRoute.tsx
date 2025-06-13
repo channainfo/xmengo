@@ -20,7 +20,7 @@ const GuestRoute: React.FC<GuestRouteProps> = ({ children }) => {
 
   // Redirect to home if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   // Render children if not authenticated
