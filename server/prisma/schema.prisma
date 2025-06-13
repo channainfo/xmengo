@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String?
+  name              String?
+  bio               String?
+  dateOfBirth       DateTime?
+  gender            String?
+  interestedIn      String[]
+  lastActive        DateTime?
+  location          Json?
+  profileCompleted  Boolean   @default(false)
+  isVerified        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  photos            Photo[]
+  interests         Interest[]
+  sentLikes         Like[]    @relation("SentLikes")
+  receivedLikes     Like[]    @relation("ReceivedLikes")
+  matches           Match[]   @relation("UserMatches")
+  matchedWith       Match[]   @relation("MatchedWithUser")
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
+  subscription      Subscription?
+  socialAccounts    SocialAccount[]
+  notifications     Notification[]
+  payments          Payment[]
+}
+
+model Photo {
+  id        String   @id @default(uuid())
+  url       String
+  isMain    Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Interest {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id          String   @id @default(uuid())
+  fromUserId  String
+  toUserId    String
+  fromUser    User     @relation("SentLikes", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User     @relation("ReceivedLikes", fields: [toUserId], references: [id], onDelete: Cascade)
+  isMatch     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([fromUserId, toUserId])
+}
+
+model Match {
+  id          String    @id @default(uuid())
+  userId      String
+  matchedId   String
+  user        User      @relation("UserMatches", fields: [userId], references: [id], onDelete: Cascade)
+  matchedUser User      @relation("MatchedWithUser", fields: [matchedId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, matchedId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  senderId  String
+  receiverId String
+  matchId   String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier          String   // "basic", "premium", "vip"
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  paymentMethod String   // "crypto_ton", "crypto_solana", "crypto_ethereum", "crypto_bitcoin"
+  transactionId String?
+  amount        Float
+  currency      String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SocialAccount {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     String   // "google", "facebook", "telegram"
+  providerId   String
+  accessToken  String?
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider, providerId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "match", "message", "like", "subscription", "payment", "system"
+  title     String
+  message   String
+  entityId  String?  // ID of related entity (match, message, etc.)
+  data      String?  // Additional data in JSON format
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Float
+  currency       String
+  paymentMethodId String
+  status         String   // "pending", "completed", "failed", "refunded"
+  paymentId      String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+}
