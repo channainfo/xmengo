@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import axios from 'axios';
 import ProfileCard from '../components/cards/ProfileCard';
 import { useSocket } from '../contexts/SocketContext';
@@ -95,21 +94,21 @@ const Home: React.FC = () => {
 
   return (
     <div className="pb-16 sm:pb-0">
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Discover</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Discover</h1>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mb-4"></div>
+        <div className="flex flex-col justify-center items-center py-12">
+          <div className="mb-4 w-12 h-12 rounded-full border-t-2 border-b-2 animate-spin border-primary-500"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading profiles...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-md">
+        <div className="p-4 text-red-700 bg-red-100 rounded-md dark:bg-red-900/30 dark:text-red-300">
           {error}
         </div>
       ) : profiles.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-5xl mb-4">😢</div>
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No more profiles</h3>
+        <div className="py-12 text-center">
+          <div className="mb-4 text-5xl">😢</div>
+          <h3 className="mb-2 text-xl font-medium text-gray-900 dark:text-white">No more profiles</h3>
           <p className="text-gray-600 dark:text-gray-400">
             Check back later for new matches or adjust your preferences.
           </p>

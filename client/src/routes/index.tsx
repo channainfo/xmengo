@@ -23,16 +23,30 @@ import Notifications from '../pages/Notifications';
 
 // Public Pages
 import Landing from '../pages/Landing';
+import Terms from '../pages/Terms';
+import Privacy from '../pages/Privacy';
+import Safety from '../pages/Safety';
+import Contact from '../pages/Contact';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Landing Page */}
+      {/* Public Landing Page with MainLayout */}
       <Route path="/" element={
-        <GuestRoute>
-          <Landing />
-        </GuestRoute>
-      } />
+        <MainLayout />
+      }>
+        <Route index element={
+          <GuestRoute>
+            <Landing />
+          </GuestRoute>
+        } />
+        
+        {/* Legal and Info Pages */}
+        <Route path="terms" element={<Terms />} />
+        <Route path="privacy" element={<Privacy />} />
+        <Route path="safety" element={<Safety />} />
+        <Route path="contact" element={<Contact />} />
+      </Route>
 
       {/* Auth Routes */}
       <Route element={

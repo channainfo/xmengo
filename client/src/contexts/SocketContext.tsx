@@ -10,6 +10,7 @@ interface SocketContextType {
   leaveMatchRoom: (matchId: string) => void;
   sendTypingStatus: (matchId: string, isTyping: boolean) => void;
   checkOnlineStatus: (userIds: string[]) => void;
+  checkUserOnlineStatus: (userId: string) => boolean;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -109,6 +110,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
   };
 
+  // Check if a specific user is online
+  const checkUserOnlineStatus = (userId: string): boolean => {
+    return onlineUsers[userId] || false;
+  };
+
   const value = {
     socket,
     isConnected,
@@ -116,7 +122,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
     joinMatchRoom,
     leaveMatchRoom,
     sendTypingStatus,
-    checkOnlineStatus
+    checkOnlineStatus,
+    checkUserOnlineStatus
   };
 
   return (
@@ -126,10 +133,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
   );
 }
 
-export function useSocket() {
+// Export as a named constant instead of a function declaration for better compatibility with Fast Refresh
+export const useSocket = () => {
   const context = useContext(SocketContext);
   if (context === undefined) {
     throw new Error('useSocket must be used within a SocketProvider');
   }
   return context;
-}
+};
