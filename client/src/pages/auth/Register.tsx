@@ -35,7 +35,7 @@ const Register: React.FC = () => {
 
     try {
       await register(email, password, name);
-      navigate('/');
+      navigate('/home');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to register. Please try again.');
     } finally {
@@ -46,7 +46,7 @@ const Register: React.FC = () => {
   return (
     <div>
       <motion.h2 
-        className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent"
+        className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -173,11 +173,11 @@ const Register: React.FC = () => {
           />
           <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             I agree to the{' '}
-            <a href="#" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400">
+            <a href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="#" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400">
+            <a href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400">
               Privacy Policy
             </a>
           </label>
@@ -187,7 +187,7 @@ const Register: React.FC = () => {
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:from-primary-700 dark:to-secondary-700 dark:hover:from-primary-600 dark:hover:to-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dark:from-pink-600 dark:to-orange-600 dark:hover:from-pink-500 dark:hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -248,7 +248,7 @@ const Register: React.FC = () => {
       <div className="mt-6 text-center text-sm">
         <p className="text-gray-600 dark:text-gray-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400">
+          <Link to="/login" className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400">
             Sign in
           </Link>
         </p>

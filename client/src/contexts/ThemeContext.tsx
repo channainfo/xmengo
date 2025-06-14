@@ -52,10 +52,11 @@ export function ThemeProvider({
   );
 }
 
-export function useTheme() {
+// Export as a named constant instead of a function declaration for better compatibility with Fast Refresh
+export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-}
+};

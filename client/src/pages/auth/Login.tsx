@@ -18,7 +18,7 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/home');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
     } finally {
@@ -28,9 +28,14 @@ const Login: React.FC = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">
+      <motion.h2 
+        className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         Sign in to your account
-      </h2>
+      </motion.h2>
 
       {error && (
         <motion.div
@@ -95,17 +100,19 @@ const Login: React.FC = () => {
           </div>
 
           <div className="text-sm">
-            <a href="#" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400">
+            <a href="#" className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400">
               Forgot your password?
             </a>
           </div>
         </div>
 
         <div>
-          <button
+          <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dark:from-pink-600 dark:to-orange-600 dark:hover:from-pink-500 dark:hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             {isLoading ? (
               <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -114,7 +121,7 @@ const Login: React.FC = () => {
               </svg>
             ) : null}
             Sign in
-          </button>
+          </motion.button>
         </div>
       </form>
 
@@ -164,7 +171,7 @@ const Login: React.FC = () => {
       <div className="mt-6 text-center text-sm">
         <p className="text-gray-600 dark:text-gray-400">
           Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400">
+          <Link to="/register" className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400">
             Sign up
           </Link>
         </p>
