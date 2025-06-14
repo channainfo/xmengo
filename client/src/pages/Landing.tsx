@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MoonIcon, SunIcon, HeartIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { FireIcon } from '@heroicons/react/24/solid';
 import { useTheme } from '../contexts/ThemeContext';
+import FmengoLogo from '../components/ui/FmengoLogo';
 
 const Landing: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -46,8 +46,7 @@ const Landing: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="flex items-center"
           >
-            <FireIcon className="h-8 w-8 text-pink-500 mr-2" />
-            <span className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">Fmengo</span>
+            <FmengoLogo size="sm" />
           </motion.div>
         </div>
         
@@ -322,10 +321,7 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
-              <div className="flex items-center">
-                <FireIcon className="h-6 w-6 text-pink-500 mr-2" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">Fmengo</span>
-              </div>
+              <FmengoLogo size="md" />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 © {new Date().getFullYear()} Fmengo. All rights reserved.
               </p>
