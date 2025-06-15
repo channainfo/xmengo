@@ -26,7 +26,14 @@ import { TelegramStrategy } from './strategies/telegram.strategy';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService, 
+    JwtStrategy,
+    // Uncomment these when OAuth credentials are configured
+    // GoogleStrategy,
+    // FacebookStrategy,
+    // TelegramStrategy,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

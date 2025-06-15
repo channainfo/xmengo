@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { profilesAPI, matchesAPI } from '../services/api';
 import ProfileCard from '../components/cards/ProfileCard';
 import { useSocket } from '../contexts/SocketContext';
-import { useAuth } from '../contexts/AuthContext';
 
 interface Profile {
   id: string;
@@ -31,17 +30,12 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { checkUserOnlineStatus } = useSocket();
-  const { token } = useAuth();
 
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/profiles', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const response = await profilesAPI.getProfiles();
         setProfiles(response.data);
         setError(null);
       } catch (err: any) {
@@ -53,15 +47,11 @@ const Home: React.FC = () => {
     };
 
     fetchProfiles();
-  }, [token]);
+  }, []);
 
   const handleLike = async (profileId: string) => {
     try {
-      await axios.post(`/api/matches/like/${profileId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await matchesAPI.likeProfile(profileId);
       // Remove the profile from the list
       setProfiles(profiles.filter(profile => profile.id !== profileId));
     } catch (err) {
@@ -71,11 +61,7 @@ const Home: React.FC = () => {
 
   const handlePass = async (profileId: string) => {
     try {
-      await axios.post(`/api/matches/pass/${profileId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await matchesAPI.passProfile(profileId);
       // Remove the profile from the list
       setProfiles(profiles.filter(profile => profile.id !== profileId));
     } catch (err) {

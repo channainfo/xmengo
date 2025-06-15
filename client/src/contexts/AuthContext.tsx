@@ -66,7 +66,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     try {
       const response = await axios.post('/api/auth/login', { email, password });
-      const { access_token } = response.data;
+      console.log('Login response:', response.data);
+      
+      // Extract access_token from the correct location in the response
+      const access_token = response.data.data.access_token;
       
       // Store token in localStorage and state
       localStorage.setItem('token', access_token);
@@ -88,7 +91,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const register = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      await axios.post('/api/auth/register', { email, password, name });
+      const response = await axios.post('/api/auth/register', { email, password, name });
+      console.log('Registration response:', response.data);
       // After registration, log the user in
       await login(email, password);
     } catch (error) {

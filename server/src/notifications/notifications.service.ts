@@ -49,7 +49,7 @@ export class NotificationsService {
     return notification;
   }
 
-  async getUserNotifications(userId: string, page: number = 1, limit: number = 10) {
+  async getUserNotifications(userId: string, page: number | string = 1, limit: number | string = 10) {
     // Check if user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -59,15 +59,19 @@ export class NotificationsService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
+    // Ensure page and limit are valid numbers
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    
     // Calculate pagination values
-    const skip = (page - 1) * limit;
+    const skip = (pageNum - 1) * limitNum;
 
     // Get notifications
     const notifications = await this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       skip,
-      take: limit,
+      take: limitNum,
     });
 
     // Get total count for pagination
@@ -78,10 +82,10 @@ export class NotificationsService {
     return {
       notifications,
       pagination: {
-        page,
-        limit,
+        page: pageNum,
+        limit: limitNum,
         total: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
+        totalPages: Math.ceil(totalCount / limitNum),
       },
     };
   }

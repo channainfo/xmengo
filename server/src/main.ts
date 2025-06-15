@@ -11,6 +11,9 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
   
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
+  
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -34,7 +37,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
