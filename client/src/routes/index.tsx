@@ -40,7 +40,7 @@ const AppRoutes: React.FC = () => {
             <Landing />
           </GuestRoute>
         } />
-        
+
         {/* Legal and Info Pages */}
         <Route path="terms" element={<Terms />} />
         <Route path="privacy" element={<Privacy />} />

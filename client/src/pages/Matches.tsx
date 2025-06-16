@@ -96,7 +96,7 @@ const Matches: React.FC = () => {
           </Link>
         </div>
       ) : (
-        <motion.div 
+        <motion.div
           variants={container}
           initial="hidden"
           animate="show"
@@ -104,9 +104,9 @@ const Matches: React.FC = () => {
         >
           {matches.map((match) => {
             const matchUser = match.user;
-            const profilePhoto = matchUser.photos.find(p => p.isMain)?.url || '/placeholder-profile.jpg';
+            const profilePhoto = matchUser.photos.find(p => p.isMain)?.url || '/placeholder-profile.svg';
             const isOnline = checkUserOnlineStatus(matchUser.id);
-            
+
             return (
               <motion.div
                 key={match.id}
@@ -114,9 +114,9 @@ const Matches: React.FC = () => {
                 className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
               >
                 <div className="relative">
-                  <img 
-                    src={profilePhoto} 
-                    alt={matchUser.name} 
+                  <img
+                    src={profilePhoto}
+                    alt={matchUser.name}
                     className="w-full aspect-square object-cover"
                   />
                   {isOnline && (
@@ -126,7 +126,7 @@ const Matches: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="p-3">
                   <h3 className="font-medium text-gray-900 dark:text-white">
                     {matchUser.name}, {matchUser.age}
@@ -134,7 +134,7 @@ const Matches: React.FC = () => {
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Matched {new Date(match.createdAt).toLocaleDateString()}
                   </p>
-                  
+
                   <div className="mt-3 flex space-x-2">
                     <Link
                       to={`/profile/${matchUser.id}`}

@@ -8,6 +8,7 @@ export class ProfilesService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
+    // In development, return all profiles regardless of completion status
     const users = await this.prisma.user.findMany({
       include: {
         photos: {
@@ -16,9 +17,7 @@ export class ProfilesService {
         },
         interests: true,
       },
-      where: {
-        profileCompleted: true,
-      },
+      // Removed profileCompleted filter to show all profiles during development
     });
 
     return users.map(user => ({

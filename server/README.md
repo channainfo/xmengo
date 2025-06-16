@@ -159,6 +159,16 @@ npm run test:e2e
 npm run test:cov
 ```
 
+## Core Attributes
+
+- User profiles for matching in a dating app, you want a combination of demographic, personality, interest, and behavioral attributes.
+- Physical appearance and fashion style can enhance both visual appeal and filtering in a dating app, especially when done respectfully and inclusively (Make sure to provide inclusive, non-judgmental options, and allow users to skip or prefer not to say).
+
+## Optional Design Notes
+
+- Privacy controls: let users hide or customize visibility of sensitive fields.
+- AI/vision enhancements: you could auto-suggest tags (like clothing style or hair type) from uploaded photos — just ensure it’s opt-in and transparent.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

@@ -34,7 +34,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const { isAuthenticated } = useAuth();
 
   // Calculate unread count
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = Array.isArray(notifications) ? notifications.filter(n => !n.isRead).length : 0;
 
   // Fetch notifications when authenticated
   useEffect(() => {
@@ -90,9 +90,22 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const fetchNotifications = async () => {
     try {
       const response = await axios.get('/api/notifications');
-      setNotifications(response.data);
+      console.log('Notifications response:', response.data);
+      
+      // Based on the server response structure we've seen, the notifications are in response.data.notifications
+      if (response.data && response.data.notifications && Array.isArray(response.data.notifications)) {
+        setNotifications(response.data.notifications);
+      } else if (response.data && response.data.data && response.data.data.notifications && Array.isArray(response.data.data.notifications)) {
+        // Deeper nesting: { data: { notifications: [...] } }
+        setNotifications(response.data.data.notifications);
+      } else {
+        // If we can't find the notifications array, set empty array and log the structure
+        console.warn('Could not find notifications array in response. Response structure:', response.data);
+        setNotifications([]);
+      }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+      setNotifications([]);
     }
   };
 

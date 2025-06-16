@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="200" fill="#f5f5f5"/>
+  
+  <!-- Simplified person silhouette with reduced visibility -->
+  <g transform="translate(100, 80)" opacity="0.6">
+    <!-- Head -->
+    <circle cx="100" cy="70" r="60" fill="#d9d9d9"/>
+    
+    <!-- Body -->
+    <path d="M60,140 C60,180 140,180 140,140 L140,240 C140,280 60,280 60,240 Z" fill="#d9d9d9"/>
+  </g>
+  
+  <!-- Subtle FMengo branding element with reduced visibility -->
+  <g transform="translate(170, 50)" opacity="0.3">
+    <path d="M30,20 C60,0 90,20 60,40 C90,60 60,80 30,60 C0,80 -30,60 0,40 C-30,20 0,0 30,20" fill="#6a5acd"/>
+  </g>
+  
+  <!-- Very subtle F letter -->
+  <g transform="translate(175, 180)" opacity="0.2">
+    <path d="M0,0 L40,0 L40,15 L15,15 L15,35 L35,35 L35,50 L15,50 L15,80 L0,80 Z" fill="#6a5acd"/>
+  </g>
+</svg>

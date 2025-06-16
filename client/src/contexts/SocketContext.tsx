@@ -37,49 +37,65 @@ export function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
 
-    // Create socket connection
-    const socketInstance = io('/', {
-      auth: {
-        token
-      },
-      transports: ['websocket'],
-      autoConnect: true
-    });
+    // Create socket connection with the SERVER_URI from .env.example
+    const serverUrl = import.meta.env.VITE_SERVER_URI || 'https://otgs-sso.ngrok.io';
+    
+    console.log('Attempting to connect to socket server at:', serverUrl);
+    
+    // In development mode, make WebSocket connection optional
+    const isDev = import.meta.env.DEV || process.env.NODE_ENV === 'development';
+    
+    try {
+      const socketInstance = io(serverUrl, {
+        auth: { token },
+        transports: ['websocket'],
+        autoConnect: true,
+        reconnectionAttempts: isDev ? 2 : 5, // Fewer attempts in dev mode
+        timeout: isDev ? 5000 : 10000, // Shorter timeout in dev mode
+      });
 
-    // Set up event listeners
-    socketInstance.on('connect', () => {
-      console.log('Socket connected');
-      setIsConnected(true);
-    });
+      // Set up event listeners
+      socketInstance.on('connect', () => {
+        console.log('Socket connected');
+        setIsConnected(true);
+      });
 
-    socketInstance.on('disconnect', () => {
-      console.log('Socket disconnected');
+      socketInstance.on('disconnect', () => {
+        console.log('Socket disconnected');
+        setIsConnected(false);
+      });
+
+      socketInstance.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        setIsConnected(false);
+      });
+
+      socketInstance.on('userStatus', (data: { userId: string; isOnline: boolean }) => {
+        setOnlineUsers(prev => ({
+          ...prev,
+          [data.userId]: data.isOnline
+        }));
+      });
+
+      socketInstance.on('onlineUsers', (data: Record<string, boolean>) => {
+        setOnlineUsers(data);
+      });
+
+      // Save socket instance
+      setSocket(socketInstance);
+
+      // Clean up on unmount
+      return () => {
+        socketInstance.disconnect();
+      };
+    } catch (error) {
+      // Handle connection error gracefully
+      console.error('Failed to initialize socket connection:', error);
       setIsConnected(false);
-    });
-
-    socketInstance.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setIsConnected(false);
-    });
-
-    socketInstance.on('userStatus', (data: { userId: string; isOnline: boolean }) => {
-      setOnlineUsers(prev => ({
-        ...prev,
-        [data.userId]: data.isOnline
-      }));
-    });
-
-    socketInstance.on('onlineUsers', (data: Record<string, boolean>) => {
-      setOnlineUsers(data);
-    });
-
-    // Save socket instance
-    setSocket(socketInstance);
-
-    // Clean up on unmount
-    return () => {
-      socketInstance.disconnect();
-    };
+      
+      // Return empty cleanup function
+      return () => {};
+    }
   }, [token, user]);
 
   // Join a match room for private messaging

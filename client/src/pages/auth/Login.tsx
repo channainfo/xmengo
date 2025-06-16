@@ -18,7 +18,9 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
+      // Disable navigation for now
       navigate('/home');
+      navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
     } finally {
@@ -28,8 +30,8 @@ const Login: React.FC = () => {
 
   return (
     <div>
-      <motion.h2 
-        className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent"
+      <motion.h2
+        className="mb-6 text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-500"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -41,7 +43,7 @@ const Login: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md text-sm"
+          className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-md dark:bg-red-900/30 dark:text-red-300"
         >
           {error}
         </motion.div>
@@ -61,7 +63,7 @@ const Login: React.FC = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white sm:text-sm"
+              className="block px-3 py-2 w-full placeholder-gray-400 rounded-md border border-gray-300 shadow-sm appearance-none dark:border-gray-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white sm:text-sm"
               placeholder="you@example.com"
             />
           </div>
@@ -80,21 +82,21 @@ const Login: React.FC = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white sm:text-sm"
+              className="block px-3 py-2 w-full placeholder-gray-400 rounded-md border border-gray-300 shadow-sm appearance-none dark:border-gray-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white sm:text-sm"
               placeholder="••••••••"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <div className="flex items-center">
             <input
               id="remember-me"
               name="remember-me"
               type="checkbox"
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-700 rounded dark:bg-gray-800"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800"
             />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+            <label htmlFor="remember-me" className="block ml-2 text-sm text-gray-700 dark:text-gray-300">
               Remember me
             </label>
           </div>
@@ -110,12 +112,12 @@ const Login: React.FC = () => {
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dark:from-pink-600 dark:to-orange-600 dark:hover:from-pink-500 dark:hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            className="flex justify-center px-4 py-2 w-full text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-orange-500 rounded-md border border-transparent shadow-sm transition-all duration-300 hover:from-pink-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dark:from-pink-600 dark:to-orange-600 dark:hover:from-pink-500 dark:hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             {isLoading ? (
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="mr-2 -ml-1 w-4 h-4 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -127,21 +129,21 @@ const Login: React.FC = () => {
 
       <div className="mt-6">
         <div className="relative">
-          <div className="absolute inset-0 flex items-center">
+          <div className="flex absolute inset-0 items-center">
             <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+          <div className="flex relative justify-center text-sm">
+            <span className="px-2 text-gray-500 bg-white dark:bg-gray-800 dark:text-gray-400">
               Or continue with
             </span>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mt-6">
           <div>
             <a
               href="#"
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="inline-flex justify-center px-4 py-2 w-full text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <span className="sr-only">Sign in with Google</span>
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -153,7 +155,7 @@ const Login: React.FC = () => {
           <div>
             <a
               href="#"
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="inline-flex justify-center px-4 py-2 w-full text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <span className="sr-only">Sign in with Facebook</span>
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -168,7 +170,7 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 text-center text-sm">
+      <div className="mt-6 text-sm text-center">
         <p className="text-gray-600 dark:text-gray-400">
           Don't have an account?{' '}
           <Link to="/register" className="font-medium text-pink-600 hover:text-pink-500 dark:text-pink-400">
