@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -152,6 +153,10 @@ const generateRandomBio = (): string => {
   return `${starter} ${activity}. ${quality} person who enjoys life. ${seeking} ${value}. ${closer}`;
 };
 
+const hashPassword = (password: string): string => {
+  return bcrypt.hashSync(password, 10);
+}
+
 const generateRandomProfile = (id: number): any => {
   const gender = Math.random() > 0.5 ? 'male' : 'female';
   const firstName = getRandomElement(firstNames[gender]);
@@ -163,7 +168,6 @@ const generateRandomProfile = (id: number): any => {
   const isOnline = Math.random() > 0.7;
 
   return {
-    id: id.toString(),
     email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${id}@example.com`,
     password: 'password123', // For development only
     firstName,
@@ -171,7 +175,9 @@ const generateRandomProfile = (id: number): any => {
     birthdate,
     gender,
     bio,
-    interests,
+    interests: interests.map(interestName => ({
+      name: interestName
+    })),
     photos: [{ url: photoUrl }],
     isOnline,
     location: {
@@ -190,8 +196,6 @@ const generateAdditionalProfiles = (count: number, startId: number): any[] => {
   return profiles;
 };
 
-
-
 // Sample profiles data
 const sampleProfiles = [
   {
@@ -203,13 +207,19 @@ const sampleProfiles = [
     gender: 'female',
     interestedIn: ['male'],
     location: { latitude: 37.7749, longitude: -122.4194 },
-    interests: ['Travel', 'Photography', 'Hiking', 'Cooking'],
+    interests: [
+      { name: 'Travel' },
+      { name: 'Photography' },
+      { name: 'Hiking' },
+      { name: 'Cooking' }
+    ],
     photos: [
       { url: samplePhotoUrls[0], isMain: true },
       { url: samplePhotoUrls[0] + '?v=2', isMain: false }
     ]
   },
   {
+
     email: 'james.smith@example.com',
     password: 'password123',
     name: 'James Smith',
@@ -218,7 +228,12 @@ const sampleProfiles = [
     gender: 'male',
     interestedIn: ['female'],
     location: { latitude: 37.7833, longitude: -122.4167 },
-    interests: ['Fitness', 'Technology', 'Hiking', 'Cooking'],
+    interests: [
+      { name: 'Fitness' },
+      { name: 'Technology' },
+      { name: 'Hiking' },
+      { name: 'Cooking' }
+    ],
     photos: [
       { url: samplePhotoUrls[1], isMain: true },
       { url: samplePhotoUrls[1] + '?v=2', isMain: false }
@@ -233,7 +248,12 @@ const sampleProfiles = [
     gender: 'female',
     interestedIn: ['male', 'female'],
     location: { latitude: 37.7694, longitude: -122.4862 },
-    interests: ['Art', 'Yoga', 'Meditation', 'Reading'],
+    interests: [
+      { name: 'Art' },
+      { name: 'Yoga' },
+      { name: 'Meditation' },
+      { name: 'Reading' }
+    ],
     photos: [
       { url: samplePhotoUrls[2], isMain: true },
       { url: samplePhotoUrls[2] + '?v=2', isMain: false }
@@ -241,115 +261,219 @@ const sampleProfiles = [
   }
 ];
 
-// Generate 100 additional profiles
-const additionalProfiles = generateAdditionalProfiles(100, 9);
+// Generate 100 additional profiles starting from ID 4
+const additionalProfiles = generateAdditionalProfiles(100, 4);
 
 // Combine original sample profiles with additional profiles
 const allProfiles = [...sampleProfiles, ...additionalProfiles];
 
 async function main() {
-  console.log('Starting to seed sample profiles...');
+  console.log('Starting database seeding...');
 
-  // Create interests if they don't exist
-  for (const interestName of interestsList) {
-    await prisma.interest.upsert({
-      where: { name: interestName },
-      update: {},
-      create: { name: interestName }
-    });
-  }
-  console.log('Interests created');
+  // Delete existing data in correct order (respecting foreign key constraints)
+  await prisma.$transaction([
+    prisma.message.deleteMany(),
+    prisma.match.deleteMany(),
+    prisma.like.deleteMany(),
+    prisma.photo.deleteMany(),
+    prisma.user.deleteMany(),
+    prisma.interest.deleteMany()
+  ]);
 
-  // Create users with profiles
-  for (const profile of allProfiles) {
-    // Use a simple hashed password for development
-    // In production, you would use bcrypt.hash()
-    const hashedPassword = `dev_hash_${profile.password}`;
-    
-    // Handle different profile structures between original and generated profiles
+  console.log('Cleared existing data');
+
+  // Step 1: Create all unique interests first
+  const allInterestNames = new Set<string>();
+  allProfiles.forEach(profile => {
+    if (profile.interests) {
+      profile.interests.forEach((interest: any) => allInterestNames.add(interest.name));
+    }
+  });
+
+  // Create interests in database
+  await prisma.interest.createMany({
+    data: Array.from(allInterestNames).map(name => ({ name })),
+    skipDuplicates: true
+  });
+
+  console.log(`Created ${allInterestNames.size} interests`);
+
+  // Step 2: Create all users without interests first
+  const usersToCreate = allProfiles.map(profile => {
+    const hashedPassword = hashPassword(profile.password);
     const name = profile.name || `${profile.firstName} ${profile.lastName}`;
     const dateOfBirth = profile.dateOfBirth || profile.birthdate;
 
-    // Create the user
-    const user = await prisma.user.upsert({
-      where: { email: profile.email },
-      update: {
-        name: name,
-        bio: profile.bio,
-        dateOfBirth: dateOfBirth,
-        gender: profile.gender,
-        interestedIn: profile.interestedIn || ['male', 'female'], // default to both
-        location: profile.location,
-        profileCompleted: true,
-        lastActive: new Date(),
-        isVerified: true
-      },
-      create: {
-        email: profile.email,
-        password: hashedPassword,
-        name: name,
-        bio: profile.bio,
-        dateOfBirth: dateOfBirth,
-        gender: profile.gender,
-        interestedIn: profile.interestedIn || ['male', 'female'], // default to both
-        location: profile.location,
-        profileCompleted: true,
-        lastActive: new Date(),
-        isVerified: true
-      }
-    });
+    return {
+      email: profile.email,
+      password: hashedPassword,
+      name: name,
+      bio: profile.bio,
+      dateOfBirth: dateOfBirth,
+      gender: profile.gender,
+      interestedIn: profile.interestedIn || ['male', 'female'],
+      location: profile.location,
+      profileCompleted: true,
+      lastActive: new Date(),
+      isVerified: true
+    };
+  });
 
-    // Add photos
-    const photos = profile.photos || [];
-    for (const photo of photos) {
-      await prisma.photo.upsert({
+  await prisma.user.createMany({
+    data: usersToCreate,
+    skipDuplicates: true
+  });
+
+  console.log(`Created ${usersToCreate.length} users`);
+
+  // Step 3: Connect users to their interests
+  for (const profile of allProfiles) {
+    if (!(profile.interests && profile.interests.length > 0)) {
+      continue;
+    }
+
+    try {
+      // Get the interest IDs for this user's interests
+      const interestNames = profile.interests.map((interest: any) => interest.name);
+
+      const interests = await prisma.interest.findMany({
         where: {
-          id: `${user.id}-${photo.url.split('/').pop()}`
+          name: {
+            in: interestNames
+          }
         },
-        update: {
-          url: photo.url,
-          isMain: photo.isMain || false
-        },
-        create: {
-          id: `${user.id}-${photo.url.split('/').pop()}`,
-          url: photo.url,
-          isMain: photo.isMain || false,
-          userId: user.id
+        select: { id: true }
+      });
+
+      const user = await prisma.user.findUnique({
+        where: { email: profile.email },
+        include: { interests: true }
+      });
+
+      // Connect the user to their interests
+      await prisma.user.update({
+        where: { id: user?.id },
+        data: {
+          interests: {
+            connect: interests.map(({ id }) => ({ id }))
+          }
         }
       });
+
+      const name = profile.name || `${profile.firstName} ${profile.lastName}`;
+      console.log(`Connected interests for ${name}`);
+    } catch (error) {
+      console.error(`Error connecting interests for user ${profile.id}:`, error);
     }
 
-    // Add interests
-    const interests = profile.interests || [];
-    for (const interestName of interests) {
-      const interest = await prisma.interest.findUnique({
-        where: { name: interestName }
-      });
-
-      if (interest) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            interests: {
-              connect: { id: interest.id }
-            }
-          }
-        });
-      }
-    }
-
-    console.log(`Created profile for ${name}`);
   }
 
-  console.log('Sample profiles seeding completed!');
+  console.log('All user interests connected');
+
+  // Step 4: Create photos for users
+  for (const profile of allProfiles) {
+    if (!(profile.photos && profile.photos.length > 0)) {
+      continue;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: profile.email },
+      select: { id: true }
+    });
+
+    try {
+      await prisma.photo.createMany({
+        data: profile.photos.map((photo: any) => ({
+          userId: user?.id,
+          url: photo.url,
+          isMain: photo.isMain || false
+        }))
+      });
+    } catch (error) {
+      console.error(`Error creating photos for user ${profile.id}:`, error);
+    }
+
+  }
+
+  console.log('Photos created');
+
+  // Step 5: Create likes and matches
+  const users = await prisma.user.findMany({ select: { id: true, name: true } });
+
+  for (const user of users) {
+    // Skip if there are no other users to like
+    if (users.length <= 1) continue;
+
+    // Create likes for random users (3-5 likes per user)
+    const numLikes = getRandomInt(3, 5);
+    const possibleLikes = users.filter(u => u.id !== user.id);
+
+    const selectedUsers = getRandomElements(possibleLikes, Math.min(numLikes, possibleLikes.length));
+
+    for (const likedUser of selectedUsers) {
+      try {
+        // Check if like already exists
+        const existingLike = await prisma.like.findFirst({
+          where: {
+            fromUserId: user.id,
+            toUserId: likedUser.id,
+          },
+        });
+
+        if (!existingLike) {
+          await prisma.like.create({
+            data: {
+              fromUserId: user.id,
+              toUserId: likedUser.id,
+              isMatch: false,
+              createdAt: new Date(),
+            },
+          });
+
+          // Check for mutual like to create match
+          const hasMutualLike = await prisma.like.findFirst({
+            where: {
+              fromUserId: likedUser.id,
+              toUserId: user.id,
+            },
+          });
+
+          if (hasMutualLike) {
+            // Check if match already exists
+            const existingMatch = await prisma.match.findFirst({
+              where: {
+                OR: [
+                  { userId: user.id, matchedId: likedUser.id },
+                  { userId: likedUser.id, matchedId: user.id }
+                ]
+              }
+            });
+
+            if (!existingMatch) {
+              await prisma.match.create({
+                data: {
+                  userId: user.id,
+                  matchedId: likedUser.id,
+                  createdAt: new Date(),
+                },
+              });
+              console.log(`Created match between ${user.name} and ${likedUser.name}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error creating like/match for ${user.name}:`, error);
+      }
+    }
+  }
+
+  console.log('Sample profiles seeding completed successfully!');
 }
 
 main()
-    .catch((e) => {
-      console.error(e);
-      // Exit with error code
-      // Using a number directly instead of process.exit(1)
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error('Seeding failed:', e);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

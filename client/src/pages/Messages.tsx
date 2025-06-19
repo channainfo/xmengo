@@ -1,25 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import MessageThread from '../components/chat/MessageThread';
-
-interface Match {
-  id: string;
-  userId: string;
-  matchedUserId: string;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string;
-    photos: {
-      id: string;
-      url: string;
-      isMain: boolean;
-    }[];
-  };
-}
 
 interface Conversation {
   matchId: string;
@@ -47,26 +31,33 @@ const Messages: React.FC = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        
+
         // Transform matches into conversations
-        const matchesData = response.data as Match[];
+        const matchesData = response.data.data;
+        // Check if matchesData is an array
+        if (!Array.isArray(matchesData)) {
+          console.error('Expected array from matches API but got:', matchesData);
+          setConversations([]);
+          setLoading(false);
+          return;
+        }
         const conversationsData: Conversation[] = matchesData.map(match => {
           // Determine if the current user is user1 or user2
           const isCurrentUserInitiator = match.userId === user?.id;
           const otherUserId = isCurrentUserInitiator ? match.matchedUserId : match.userId;
           const otherUser = isCurrentUserInitiator ? match.user : match.user;
-          
+
           return {
             matchId: match.id,
             userId: otherUserId,
             name: otherUser.name,
-            photoUrl: otherUser.photos.find(p => p.isMain)?.url,
+            photoUrl: otherUser.photos.find((p: any) => p.isMain)?.url,
             unreadCount: 0 // This would come from your API in a real app
           };
         });
-        
+
         setConversations(conversationsData);
-        
+
         // Select the first conversation by default if available
         if (conversationsData.length > 0 && !selectedConversation) {
           setSelectedConversation(conversationsData[0]);
@@ -86,7 +77,7 @@ const Messages: React.FC = () => {
     if (socket && isConnected) {
       socket.on('newMessage', (message: any) => {
         // Update unread count for the conversation
-        setConversations(prevConversations => 
+        setConversations(prevConversations =>
           prevConversations.map(conv => {
             if (conv.userId === message.senderId && selectedConversation?.userId !== message.senderId) {
               return { ...conv, unreadCount: conv.unreadCount + 1 };
@@ -106,9 +97,9 @@ const Messages: React.FC = () => {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    
+
     // Reset unread count
-    setConversations(prevConversations => 
+    setConversations(prevConversations =>
       prevConversations.map(conv => {
         if (conv.matchId === conversation.matchId) {
           return { ...conv, unreadCount: 0 };
@@ -125,11 +116,11 @@ const Messages: React.FC = () => {
         <div className="p-4 border-b dark:border-gray-700">
           <h2 className="text-lg font-medium text-gray-900 dark:text-white">Messages</h2>
         </div>
-        
+
         <div className="overflow-y-auto h-[calc(100%-4rem)]">
           {loading ? (
             <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
+              <div className="w-8 h-8 rounded-full border-t-2 border-b-2 animate-spin border-primary-500"></div>
             </div>
           ) : conversations.length === 0 ? (
             <div className="p-4 text-center text-gray-500 dark:text-gray-400">
@@ -143,38 +134,37 @@ const Messages: React.FC = () => {
                   <button
                     key={conversation.matchId}
                     onClick={() => handleSelectConversation(conversation)}
-                    className={`w-full flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                      selectedConversation?.matchId === conversation.matchId
-                        ? 'bg-gray-100 dark:bg-gray-700'
-                        : ''
-                    }`}
+                    className={`w-full flex items-center p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${selectedConversation?.matchId === conversation.matchId
+                      ? 'bg-gray-100 dark:bg-gray-700'
+                      : ''
+                      }`}
                   >
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden">
+                      <div className="overflow-hidden w-12 h-12 bg-gray-300 rounded-full dark:bg-gray-600">
                         {conversation.photoUrl ? (
                           <img
                             src={conversation.photoUrl}
                             alt={conversation.name}
-                            className="w-full h-full object-cover"
+                            className="object-cover w-full h-full"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-600 dark:text-gray-300">
+                          <div className="flex justify-center items-center w-full h-full text-gray-600 dark:text-gray-300">
                             {conversation.name.charAt(0).toUpperCase()}
                           </div>
                         )}
                       </div>
                       {isOnline && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                        <div className="absolute right-0 bottom-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
                       )}
                       {conversation.unreadCount > 0 && (
-                        <div className="absolute top-0 right-0 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
-                          <span className="text-xs text-white font-medium">
+                        <div className="flex absolute top-0 right-0 justify-center items-center w-5 h-5 rounded-full bg-primary-500">
+                          <span className="text-xs font-medium text-white">
                             {conversation.unreadCount}
                           </span>
                         </div>
                       )}
                     </div>
-                    <div className="ml-3 flex-grow text-left">
+                    <div className="flex-grow ml-3 text-left">
                       <div className="flex justify-between">
                         <h3 className="font-medium text-gray-900 dark:text-white">
                           {conversation.name}
@@ -188,7 +178,7 @@ const Messages: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      <p className="text-sm text-gray-500 truncate dark:text-gray-400">
                         {conversation.lastMessage || 'Start a conversation'}
                       </p>
                     </div>
@@ -210,9 +200,9 @@ const Messages: React.FC = () => {
             recipientPhoto={selectedConversation.photoUrl}
           />
         ) : (
-          <div className="text-center p-8">
-            <div className="text-5xl mb-4">💬</div>
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+          <div className="p-8 text-center">
+            <div className="mb-4 text-5xl">💬</div>
+            <h3 className="mb-2 text-xl font-medium text-gray-900 dark:text-white">
               Select a conversation
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
@@ -224,10 +214,10 @@ const Messages: React.FC = () => {
 
       {/* Mobile Back Button */}
       {selectedConversation && (
-        <div className="sm:hidden fixed bottom-20 left-4">
+        <div className="fixed left-4 bottom-20 sm:hidden">
           <button
             onClick={() => setSelectedConversation(null)}
-            className="bg-white dark:bg-gray-800 rounded-full p-3 shadow-lg"
+            className="p-3 bg-white rounded-full shadow-lg dark:bg-gray-800"
           >
             <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

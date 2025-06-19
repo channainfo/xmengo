@@ -1,48 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { motion } from 'framer-motion';
 import { HeartIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
+import { matchesAPI } from '../services/api';
+
+interface Photo {
+  id: string;
+  url: string;
+  isMain: boolean;
+}
+
+interface User {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  photos: Photo[];
+}
+
+interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  createdAt: string;
+}
 
 interface Match {
   id: string;
   userId: string;
-  matchedUserId: string;
+  matchedId: string;
   createdAt: string;
-  user: {
-    id: string;
-    name: string;
-    age: number;
-    photos: {
-      id: string;
-      url: string;
-      isMain: boolean;
-    }[];
-  };
+  displayUser: User;
+  messages: Message[];
+  user?: User;
+  matchedUser?: User;
 }
 
 const Matches: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
   const { checkUserOnlineStatus } = useSocket();
 
   useEffect(() => {
     const fetchMatches = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/matches', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setMatches(response.data);
-        setError(null);
+        const response = await matchesAPI.getMatches();
+
+        // Log the full response for debugging
+        console.log('Matches API Response:', response);
+
+        // Handle the response properly
+        if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
+          // Transform the data to match our expected structure
+          const transformedMatches = response.data.data.map((match: any) => ({
+            id: match.id,
+            userId: match.userId,
+            matchedId: match.matchedId,
+            createdAt: match.createdAt,
+            // Always display the matched user's profile
+            displayUser: match.userId === localStorage.getItem('userId')
+              ? match.matchedUser
+              : match.user,
+            messages: match.messages?.length ? match.messages : []
+          }));
+
+          // Log the transformed matches
+          console.log('Transformed Matches:', transformedMatches);
+
+          setMatches(transformedMatches);
+          setError(null);
+        } else {
+          console.error('Invalid matches response:', response);
+          setMatches([]);
+          setError('Failed to load matches. Please try again later.');
+        }
       } catch (err: any) {
         console.error('Error fetching matches:', err);
+        setMatches([]);
         setError('Failed to load matches. Please try again later.');
       } finally {
         setLoading(false);
@@ -50,7 +87,7 @@ const Matches: React.FC = () => {
     };
 
     fetchMatches();
-  }, [token]);
+  }, []);  // Removed token dependency since it's handled in the API service
 
   const container = {
     hidden: { opacity: 0 },
@@ -68,30 +105,35 @@ const Matches: React.FC = () => {
   };
 
   return (
-    <div className="pb-16 sm:pb-0">
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Your Matches</h1>
+    // <div className="pb-16 sm:pb-0">
+    <div className="px-4 pb-16 mx-auto max-w-6xl sm:pb-0">
+
+      <h1 className="py-2 text-3xl font-bold text-primary-600 dark:text-primary-500">Your Matches</h1>
+      <p className="mt-1 mb-8 text-sm text-gray-500 dark:text-gray-400">
+        Start messaging your matches to get to know them better.
+      </p>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mb-4"></div>
+        <div className="flex flex-col justify-center items-center py-12">
+          <div className="mb-4 w-12 h-12 rounded-full border-t-2 border-b-2 animate-spin border-primary-500"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading matches...</p>
         </div>
       ) : error ? (
-        <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-md">
+        <div className="p-4 text-red-700 bg-red-100 rounded-md dark:bg-red-900/30 dark:text-red-300">
           {error}
         </div>
-      ) : matches.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="text-5xl mb-4">💔</div>
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No matches yet</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+      ) : !matches || matches.length === 0 ? (
+        <div className="p-6 py-12 text-center bg-white rounded-lg shadow dark:bg-gray-800">
+          <div className="mb-4 text-5xl">💔</div>
+          <h3 className="mb-2 text-xl font-medium text-gray-900 dark:text-white">No matches yet</h3>
+          <p className="mb-6 text-gray-600 dark:text-gray-400">
             Keep swiping to find your perfect match!
           </p>
           <Link
             to="/"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-md border border-transparent shadow-sm bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
-            <HeartIcon className="w-5 h-5 mr-2" />
+            <HeartIcon className="mr-2 w-5 h-5" />
             Discover People
           </Link>
         </div>
@@ -100,54 +142,55 @@ const Matches: React.FC = () => {
           variants={container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
-          {matches.map((match) => {
-            const matchUser = match.user;
-            const profilePhoto = matchUser.photos.find(p => p.isMain)?.url || '/placeholder-profile.svg';
-            const isOnline = checkUserOnlineStatus(matchUser.id);
+          {matches?.map((match) => {
+            const isOnline = checkUserOnlineStatus(match.displayUser?.id);
 
             return (
               <motion.div
                 key={match.id}
                 variants={item}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
+                className="overflow-hidden bg-white rounded-lg shadow dark:bg-gray-800"
               >
                 <div className="relative">
                   <img
-                    src={profilePhoto}
-                    alt={matchUser.name}
-                    className="w-full aspect-square object-cover"
+                    src={match.displayUser.photos[0]?.url || '/default-avatar.png'}
+                    alt={match.displayUser.name}
+                    className="object-cover w-full aspect-square"
                   />
                   {isOnline && (
-                    <div className="absolute top-2 right-2 flex items-center bg-black/30 backdrop-blur-sm rounded-full px-2 py-1">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
-                      <span className="text-xs text-white font-medium">Online</span>
+                    <div className="flex absolute top-2 right-2 items-center px-2 py-1 rounded-full backdrop-blur-sm bg-black/30">
+                      <div className="mr-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-xs font-medium text-white">Online</span>
                     </div>
                   )}
                 </div>
 
-                <div className="p-3">
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    {matchUser.name}, {matchUser.age}
+                <div className="p-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    {match.displayUser.name}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Matched {new Date(match.createdAt).toLocaleDateString()}
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {match.displayUser.age} • {match.displayUser.gender}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Matched {new Date(match?.createdAt).toLocaleDateString()}
                   </p>
 
-                  <div className="mt-3 flex space-x-2">
+                  <div className="flex mt-3 space-x-2">
                     <Link
-                      to={`/profile/${matchUser.id}`}
-                      className="flex-1 flex items-center justify-center py-1 px-2 border border-gray-300 dark:border-gray-600 rounded text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      to={`/profile/${match.displayUser.id}`}
+                      className="flex flex-1 justify-center items-center px-2 py-1 text-sm font-medium text-gray-700 rounded border border-gray-300 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      <HeartIcon className="w-4 h-4 mr-1" />
+                      <HeartIcon className="mr-1 w-4 h-4" />
                       Profile
                     </Link>
                     <Link
                       to={`/messages?matchId=${match.id}`}
-                      className="flex-1 flex items-center justify-center py-1 px-2 bg-primary-600 hover:bg-primary-700 rounded text-sm font-medium text-white"
+                      className="flex flex-1 justify-center items-center px-2 py-1 text-sm font-medium text-white rounded bg-primary-600 hover:bg-primary-700"
                     >
-                      <ChatBubbleLeftRightIcon className="w-4 h-4 mr-1" />
+                      <ChatBubbleLeftRightIcon className="mr-1 w-4 h-4" />
                       Chat
                     </Link>
                   </div>

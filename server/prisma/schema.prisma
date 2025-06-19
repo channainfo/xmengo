@@ -26,7 +26,7 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   photos            Photo[]
-  interests         Interest[]
+  interests         Interest[] @relation("UserInterest")
   sentLikes         Like[]    @relation("SentLikes")
   receivedLikes     Like[]    @relation("ReceivedLikes")
   matches           Match[]   @relation("UserMatches")
@@ -52,7 +52,7 @@ model Photo {
 model Interest {
   id        String   @id @default(uuid())
   name      String   @unique
-  users     User[]
+  users     User[]   @relation("UserInterest")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
