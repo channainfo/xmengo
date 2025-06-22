@@ -52,7 +52,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const fetchUserProfile = async () => {
     try {
       const response = await axios.get('/api/profiles/me');
-      setUser(response.data);
+      // Check if response has a data property (API might wrap the actual data)
+      const userData = response.data.data || response.data;
+      console.log('User profile data:', userData);
+      setUser(userData);
     } catch (error) {
       console.error('Failed to fetch user profile:', error);
       // If token is invalid, clear it

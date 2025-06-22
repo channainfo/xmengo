@@ -66,8 +66,15 @@ const Profile: React.FC = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        const responseProfile = response.data.data;
+        // Handle both response structures - either direct data or nested in data property
+        const responseProfile = response.data.data || response.data;
         console.log("setProfile:=======================", responseProfile);
+
+        if (!responseProfile) {
+          setError('Profile data not found');
+          setLoading(false);
+          return;
+        }
 
         setProfile(responseProfile);
         setEditedBio(responseProfile.bio || '');
@@ -88,34 +95,58 @@ const Profile: React.FC = () => {
     if (!profile) return;
 
     try {
-      const updatedProfile = {
-        ...profile,
+      // Only send allowed fields according to UpdateProfileDto
+      // The server expects interests as string names, not objects
+      const updateData = {
         bio: editedBio,
-        interests: editedInterests
+        // Extract just the interest names as strings
+        interests: editedInterests.map(interest => interest.name)
       };
 
-      await axios.put(`/api/profiles`, updatedProfile, {
+      console.log('Sending profile update:', updateData);
+      
+      const response = await axios.patch(`/api/profiles`, updateData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
-      setProfile(updatedProfile);
+      console.log('Profile update response:', response.data);
+      
+      // Update local profile state with the new data
+      setProfile(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          bio: editedBio,
+          interests: editedInterests
+        };
+      });
       setIsEditing(false);
     } catch (err) {
       console.error('Error updating profile:', err);
+      alert('Failed to update profile. Please try again.');
     }
   };
 
   const handleAddInterest = () => {
     if (!newInterest.trim()) return;
 
-    const interest = {
+    // Create a new interest object with a temporary ID
+    const interest: Interest = {
       id: `temp-${Date.now()}`,
       name: newInterest.trim()
     };
 
-    setEditedInterests([...editedInterests, interest]);
+    // Check if this interest already exists to avoid duplicates
+    const exists = editedInterests.some(i => 
+      i.name.toLowerCase() === interest.name.toLowerCase()
+    );
+    
+    if (!exists) {
+      setEditedInterests([...editedInterests, interest]);
+    }
+    
     setNewInterest('');
   };
 
@@ -129,25 +160,40 @@ const Profile: React.FC = () => {
 
     try {
       setUploadingPhoto(true);
-
-      const formData = new FormData();
-      formData.append('photo', files[0]);
-
-      const response = await axios.post('/api/profiles/photos', formData, {
+      
+      // For development, we'll use a placeholder URL based on the file name
+      // In production, you would upload to a storage service first, then send the URL
+      const file = files[0];
+      const fileName = file.name;
+      
+      // Create a placeholder URL for development purposes
+      // This simulates having uploaded the image to a cloud storage
+      const placeholderUrl = `https://placeholder-storage.com/photos/${fileName}`;
+      
+      console.log('Sending photo data with URL:', placeholderUrl);
+      
+      // Send the URL to the server as expected by the API
+      const response = await axios.post('/api/profiles/photos', {
+        url: placeholderUrl,
+        isMain: profile?.photos.length === 0 // Make it main if it's the first photo
+      }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         }
       });
 
+      console.log('Photo upload response:', response.data);
+      
       if (profile) {
+        const newPhoto = response.data.data || response.data;
         setProfile({
           ...profile,
-          photos: [...profile.photos, response.data]
+          photos: [...profile.photos, newPhoto]
         });
       }
     } catch (err) {
       console.error('Error uploading photo:', err);
+      alert('Failed to upload photo. Please try again.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -155,7 +201,8 @@ const Profile: React.FC = () => {
 
   const handleSetMainPhoto = async (photoId: string) => {
     try {
-      await axios.put(`/api/profiles/photos/${photoId}/main`, {}, {
+      // Use POST method as specified in the server controller
+      await axios.post(`/api/profiles/photos/${photoId}/main`, {}, {
         headers: {
           Authorization: `Bearer ${token}`
         }

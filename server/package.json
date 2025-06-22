@@ -23,6 +23,7 @@
     "seed:likes": "ts-node -P tsconfig.seed.json prisma/seeds/likes.ts",
     "seed:messages": "ts-node -P tsconfig.seed.json prisma/seeds/messages.ts",
     "seed:threads": "ts-node -P tsconfig.seed.json prisma/seeds/threads.ts",
+    "seed:notifications": "ts-node -P tsconfig.seed.json prisma/seeds/notifications.ts",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
